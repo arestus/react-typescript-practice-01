@@ -1,4 +1,6 @@
-import { Action, Reducer } from "redux";
+import { client } from "../api/tmdb";
+import { AppThunk } from "../store";
+import { ActionWithPayload, createReducer } from "./../redux/utils";
 
 export interface Movie {
   id: number;
@@ -10,33 +12,59 @@ export interface Movie {
 
 interface MovieState {
   top: Movie[];
+  loading: boolean;
 }
 
 const initialState = {
-  top: [
-    {
-      id: 1,
-      title: "The Shawshank Redemption",
-      popularity: 9.2,
-      overview: "Two imprisoned",
-    },
-    {
-      id: 2,
-      title: "The Godfather",
-      popularity: 9.2,
-      overview: "Two imprisoned",
-    },
-    {
-      id: 3,
-      title: "The Dark Knight",
-      popularity: 9.0,
-      overview: "Two imprisoned",
-    },
-  ],
+  top: [],
+  loading: false,
 };
 
-const moviesReducer: Reducer<MovieState, Action> = (state, action) => {
-  return initialState;
-};
+const moviesLoaded = (movies: Movie[]) => ({
+  type: "movies/loaded",
+  payload: movies,
+});
+
+const moviesLoading = () => ({
+  type: "movies/loading",
+});
+
+export function fetchMovies(): AppThunk<Promise<void>> {
+  return async (dispatch, getState) => {
+    dispatch(moviesLoading());
+
+    const config = await client.getConfiguration();
+    const imageUrl = config.images.base_url;
+    const results = await client.getNowPlaying();
+
+    const mappedResults: Movie[] = results.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      overview: movie.overview,
+      popularity: movie.popularity,
+      image: movie.backdrop_path
+        ? `${imageUrl}w780${movie.backdrop_path}`
+        : undefined,
+    }));
+
+    dispatch(moviesLoaded(mappedResults));
+  };
+}
+
+const moviesReducer = createReducer<MovieState>(initialState, {
+  "movies/loaded": (state, action: ActionWithPayload<Movie[]>) => {
+    return {
+      ...state,
+      top: action.payload,
+      loading: false,
+    };
+  },
+  "movies/loading": (state, action) => {
+    return {
+      ...state,
+      loading: true,
+    };
+  },
+});
 
 export default moviesReducer;
