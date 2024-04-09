@@ -1,65 +1,57 @@
-import { useEffect, useState } from "react";
-import { Movie } from "../../reducers/movies";
+import { useEffect } from "react";
+import { Movie, fetchMovies } from "../../reducers/movies";
 import { connect } from "react-redux";
 import { RootState } from "../../store";
 import { MovieCard } from "./MovieCard";
 
 import styles from "./Movies.module.scss";
-import { MovieDetails, client } from "../../api/tmdb";
-
-export function MoviesFetch() {
-  const [movies, setMovies] = useState<MovieDetails[]>([]);
-
-  useEffect(() => {
-    async function loadData() {
-      const config = await client.getConfiguration();
-      const imageUrl = config.images.base_url;
-      const results = await client.getNowPlaying();
-
-      const mappedResults: Movie[] = results.map((movie) => ({
-        id: movie.id,
-        title: movie.title,
-        overview: movie.overview,
-        popularity: movie.popularity,
-        image: movie.backdrop_path
-          ? `${imageUrl}w780${movie.backdrop_path}`
-          : undefined,
-      }));
-
-      setMovies(mappedResults);
-    }
-
-    loadData();
-  }, []);
-
-  return <Movies movies={movies} />;
-}
+import { useAppDispatch } from "../../hooks";
+import { Container, Grid, LinearProgress, Typography } from "@mui/material";
 
 interface MoviesProps {
   movies: Movie[];
+  loading: boolean;
 }
 
-function Movies({ movies }: MoviesProps) {
+function Movies({ movies, loading }: MoviesProps) {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchMovies());
+  }, [dispatch]);
+
   return (
-    <section>
+    <Container sx={{ py: 8 }} maxWidth="lg">
+      <Typography variant="h4" align="center" gutterBottom>
+        Now playing
+      </Typography>
       <div className={styles.list}>
-        {movies.map((movie) => (
-          <MovieCard
-            key={movie.id}
-            id={movie.id}
-            title={movie.title}
-            overview={movie.overview}
-            popularity={movie.popularity}
-            image={movie.image}
-          />
-        ))}
+        {loading ? (
+          <LinearProgress color="secondary" />
+        ) : (
+          <Grid container spacing={4}>
+            {movies.map((movie) => (
+              <Grid item key={movie.id} xs={12} sm={6} md={4}>
+                <MovieCard
+                  key={movie.id}
+                  id={movie.id}
+                  title={movie.title}
+                  overview={movie.overview}
+                  popularity={movie.popularity}
+                  image={movie.image}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </div>
-    </section>
+    </Container>
   );
 }
 
 const mapStateToProps = (state: RootState) => ({
   movies: state.movies.top,
+  loading: state.movies.loading,
 });
 
 const connector = connect(mapStateToProps);
