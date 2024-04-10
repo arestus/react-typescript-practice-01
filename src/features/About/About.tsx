@@ -1,7 +1,14 @@
+import { Container } from "@mui/material";
+import CountdownText from "./CountdownText";
+import { CountdownVideo } from "./CountdownVideo";
+import MapView from "./MapView";
+
 export function About() {
   return (
-    <div>
-      <h1>About</h1>
-    </div>
+    <Container sx={{ py: 8 }} maxWidth="md">
+      <CountdownText />
+      <CountdownVideo />
+      <MapView />
+    </Container>
   );
 }

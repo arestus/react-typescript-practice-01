@@ -1,12 +1,12 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { Movie, fetchMovies } from "../../reducers/movies";
 import { connect } from "react-redux";
 import { RootState } from "../../store";
 import { MovieCard } from "./MovieCard";
 
-import styles from "./Movies.module.scss";
 import { useAppDispatch } from "../../hooks";
 import { Container, Grid, LinearProgress, Typography } from "@mui/material";
+import { AuthContext, anonymousUser } from "../../AuthContext";
 
 interface MoviesProps {
   movies: Movie[];
@@ -15,6 +15,9 @@ interface MoviesProps {
 
 function Movies({ movies, loading }: MoviesProps) {
   const dispatch = useAppDispatch();
+
+  const { user } = useContext(AuthContext);
+  const loggedIn = user !== anonymousUser;
 
   useEffect(() => {
     dispatch(fetchMovies());
@@ -25,7 +28,7 @@ function Movies({ movies, loading }: MoviesProps) {
       <Typography variant="h4" align="center" gutterBottom>
         Now playing
       </Typography>
-      <div className={styles.list}>
+      <div>
         {loading ? (
           <LinearProgress color="secondary" />
         ) : (
@@ -39,6 +42,7 @@ function Movies({ movies, loading }: MoviesProps) {
                   overview={movie.overview}
                   popularity={movie.popularity}
                   image={movie.image}
+                  enableUserActions={loggedIn}
                 />
               </Grid>
             ))}

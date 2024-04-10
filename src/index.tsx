@@ -5,7 +5,6 @@ import "@fontsource/roboto/700.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.scss";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
@@ -14,11 +13,14 @@ import { Provider } from "react-redux";
 import store from "./store";
 import Movies from "./features/Movies/Movies";
 import Home from "./features/Home/Home";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 function AppEntrypoint() {
   return (
     <Provider store={store}>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </Provider>
   );
 }
@@ -44,9 +46,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
   <React.StrictMode>
     <RouterProvider router={router} />
