@@ -1,4 +1,6 @@
 import configuration from "../configuration";
+import { KeywordItem } from "../features/Movies/MoviesFilter";
+import { MoviesFilters } from "../reducers/movies";
 
 async function get<TBody>(relativeUrl: string): Promise<TBody> {
   const options = {
@@ -51,5 +53,25 @@ export const client = {
       page: response.page,
       totalPages: response.total_pages,
     };
+  },
+  async getMovies(page: number = 1, filters: MoviesFilters) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+    });
+    if (filters.keywords) {
+      params.append("with_keywords", filters.keywords.join(","));
+    }
+    const query = params.toString();
+    const response = await get<PageResponse<MovieDetails>>(`/discover/movie?${query}`);
+    return {
+      results: response.results,
+      page: response.page,
+      totalPages: response.total_pages,
+    };
+  },
+  async getKeywords(query: string) {
+    const response = await get<PageResponse<KeywordItem>>(`/search/keyword?query=${query}`);
+
+    return response.results;
   },
 };
